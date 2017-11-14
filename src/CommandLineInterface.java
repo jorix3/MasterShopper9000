@@ -51,11 +51,11 @@ public class CommandLineInterface {
             }
 
             if (command.equals("save")) {
-                shoppingListApp.saveToFile();
+                shoppingListApp.saveToFile("shoppingList.txt");
             }
 
             if (command.equals("load")) {
-                shoppingListApp.loadFromFile();
+                shoppingListApp.loadFromFile("shoppingList.txt");
                 showListContent();
             }
 

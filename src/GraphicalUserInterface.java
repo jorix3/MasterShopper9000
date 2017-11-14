@@ -1,4 +1,9 @@
+import com.dropbox.core.DbxException;
+import com.dropbox.core.DbxRequestConfig;
+import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.v2.users.FullAccount;
 import fi.tamk.tiko.MyListPackage.MyLinkedList;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -8,8 +13,12 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+
+import java.io.File;
 
 /**
  * GraphicalUserInterface
@@ -19,12 +28,15 @@ import javafx.stage.StageStyle;
  * @since       1.8
  */
 public class GraphicalUserInterface extends Application {
+    private final String ACCES_TOKEN = "ATeMJijlPUQAAAAAAAAIRNvyM_2hWgF-Yz" +
+            "InniaPO_4dyad0JWEr8rocnqBE65ml";
     private ShoppingListApp shoppingListApp;
-    private static MyLinkedList<ShoppingItem> shoppingList;
-    private static TableView<ShoppingItem> table;
-    private static Scene scene;
-    private static TextField nameField;
-    private static TextField amountField;
+    private MyLinkedList<ShoppingItem> shoppingList;
+    private TableView<ShoppingItem> table;
+    private Scene scene;
+    private TextField nameField;
+    private TextField amountField;
+    private FileChooser fileChooser;
 
     /**
      * @see Application#start(Stage) start
@@ -41,6 +53,32 @@ public class GraphicalUserInterface extends Application {
         nameField = new TextField("name");
         amountField = new TextField("amount");
         table = createTable();
+        fileChooser = new FileChooser();
+        ExtensionFilter filter;
+        filter = new ExtensionFilter("TXT files (*.txt)", "*.txt");
+        String myFolder = "MasterShopper9000";
+        File myAppFolder = new File(System.getProperty("user.home"), myFolder);
+
+        if (!myAppFolder.exists()) {
+            myAppFolder.mkdirs();
+        }
+
+        fileChooser.getExtensionFilters().add(filter);
+        fileChooser.setInitialFileName("shoppingList.txt");
+        fileChooser.setInitialDirectory(myAppFolder);
+
+//        DbxRequestConfig config = new DbxRequestConfig("MasterShopper9000");
+//        DbxClientV2 client = new DbxClientV2(config, ACCES_TOKEN);
+//
+//        FullAccount account = null;
+//
+//        try {
+//            account = client.users().getCurrentAccount();
+//        } catch (DbxException e) {
+//            e.printStackTrace();
+//        }
+//
+//        System.out.println(account.getName().getDisplayName());
 
         MenuBar menuBar = menuBarBuilder();
 
@@ -91,6 +129,32 @@ public class GraphicalUserInterface extends Application {
 
     }
 
+
+    /**
+     * Open save to file dialog.
+     */
+    private void saveFile(){
+        File file = fileChooser.showSaveDialog(scene.getWindow());
+
+        if (file != null) {
+            String path = file.getPath();
+            shoppingListApp.saveToFile(path);
+        }
+    }
+
+    /**
+     * Open load from file dialog.
+     */
+    private void loadFile(){
+        File file = fileChooser.showOpenDialog(scene.getWindow());
+
+        if (file != null) {
+            String path = file.getPath();
+            shoppingListApp.loadFromFile(path);
+            updateTable();
+        }
+    }
+
     /**
      * Creates a menubar.
      *
@@ -115,11 +179,8 @@ public class GraphicalUserInterface extends Application {
 
         MenuItem about = new MenuItem("About Lotto App  - disabled");
 
-        save.setOnAction(event -> shoppingListApp.saveToFile());
-        load.setOnAction(event -> {
-            shoppingListApp.loadFromFile();
-            updateTable();
-        });
+        save.setOnAction(event -> saveFile());
+        load.setOnAction(event -> loadFile());
         exit.setOnAction(event -> Platform.exit());
 
         music.setSelected(true);

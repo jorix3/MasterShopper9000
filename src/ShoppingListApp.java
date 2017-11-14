@@ -1,4 +1,5 @@
 import fi.tamk.tiko.MyListPackage.MyLinkedList;
+
 import java.io.*;
 
 /**
@@ -145,7 +146,7 @@ public class ShoppingListApp {
     /**
      * Saves shoppingList contents to a txt file.
      */
-    public void saveToFile() {
+    public void saveToFile(String path) {
         String data = "";
 
         for (int i = 0; i < shoppingList.size(); i++) {
@@ -154,7 +155,7 @@ public class ShoppingListApp {
         }
 
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream("shoppingList.txt"), "utf-8"))) {
+                new FileOutputStream(path), "utf-8"))) {
             writer.write(data);
         } catch (IOException e) {
             e.printStackTrace();
@@ -164,10 +165,9 @@ public class ShoppingListApp {
     /**
      * Load shoppingList contents from txt file.
      */
-    public void loadFromFile() {
+    public void loadFromFile(String path) {
         BufferedReader reader = null;
         String data = "";
-        String path = "shoppingList.txt";
 
         try {
             reader = new BufferedReader(new FileReader(new File(path)));
@@ -181,7 +181,9 @@ public class ShoppingListApp {
             return;
         } finally {
             try {
-                reader.close();
+                if (reader != null) {
+                    reader.close();
+                }
             } catch (NullPointerException | IOException e) {
                 e.printStackTrace();
             }
