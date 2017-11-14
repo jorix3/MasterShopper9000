@@ -54,6 +54,11 @@ public class CommandLineInterface {
                 shoppingListApp.saveToFile();
             }
 
+            if (command.equals("load")) {
+                shoppingListApp.loadFromFile();
+                showListContent();
+            }
+
             if (shoppingListApp.inputChecker(command)) {
                 shoppingListApp.inputHandler(command);
                 showListContent();

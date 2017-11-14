@@ -20,13 +20,15 @@ import javafx.stage.StageStyle;
  */
 public class GraphicalUserInterface extends Application {
     private ShoppingListApp shoppingListApp;
-    private final int SCENE_WIDTH = 640;
     private static MyLinkedList<ShoppingItem> shoppingList;
     private static TableView<ShoppingItem> table;
     private static Scene scene;
     private static TextField nameField;
     private static TextField amountField;
 
+    /**
+     * @see Application#start(Stage) start
+     */
     @Override
     public void start(Stage stage) {
         shoppingListApp = new ShoppingListApp();
@@ -51,8 +53,8 @@ public class GraphicalUserInterface extends Application {
         table.setEditable(true);
         updateTable();
 
-        addButton.setOnAction(event -> modifyShoppingItem(false));
-        removeButton.setOnAction(event -> modifyShoppingItem(true));
+        addButton.setOnAction(event -> modifyShoppingList(false));
+        removeButton.setOnAction(event -> modifyShoppingList(true));
 
         topPane.setTop(menuBar);
         topPane.setBottom(label);
@@ -74,19 +76,26 @@ public class GraphicalUserInterface extends Application {
         contentPane.setPadding(new Insets(0, 0, 10, 0));
         contentPane.setAlignment(addButton, Pos.CENTER);
 
-        scene = new Scene(contentPane, SCENE_WIDTH, 600);
+        scene = new Scene(contentPane, 640, 600);
         scene.getStylesheets().add("Style.css");
         stage.setScene(scene);
 
         stage.show();
     }
 
+    /**
+     * @see Application#stop() stop
+     */
     @Override
     public void stop() {
 
     }
 
-
+    /**
+     * Creates a menubar.
+     *
+     * @return    the created menu bar
+     */
     private MenuBar menuBarBuilder() {
         MenuBar menuBar = new MenuBar();
 
@@ -128,7 +137,16 @@ public class GraphicalUserInterface extends Application {
         return menuBar;
     }
 
-    private void modifyShoppingItem(boolean isNegative) {
+    /**
+     * Modify shoppingList based on text fields.
+     *
+     * <p>If text field 'name' is not on the list adds new items.
+     * If it is on the list and given boolean is true it increases existing items amount.
+     * If it is on the list and given boolean is false it decreases existing items amount.</p>
+     *
+     * @param  isSubtract  boolean determines if adding or subtracting
+     */
+    private void modifyShoppingList(boolean isSubtract) {
 //        cli.addToList(new ShoppingItem(5, "test-beer"));
 //        cli.addToList(new ShoppingItem(2, "test-milk"));
 
@@ -143,7 +161,7 @@ public class GraphicalUserInterface extends Application {
                 return;
             }
 
-            if (isNegative) {
+            if (isSubtract) {
                 amount = 0 - amount;
             }
 
@@ -154,21 +172,27 @@ public class GraphicalUserInterface extends Application {
         updateTable();
     }
 
+    /**
+     * Update tableView contents to reflect shoppingList.
+     */
     private void updateTable() {
         shoppingList = shoppingListApp.getShoppingList();
         table.getItems().clear();
 
         for (int i = 0; i < shoppingList.size(); i++) {
-            ShoppingItem item = shoppingList.get(i);
-            table.getItems().add(item);
+            table.getItems().add(shoppingList.get(i));
         }
     }
 
+    /**
+     * Create tableView for shoppingItems.
+     *
+     * @return  the created tableView
+     */
     private TableView<ShoppingItem> createTable() {
         TableView<ShoppingItem> table = new TableView<>();
         TableColumn<ShoppingItem, Number> amountCol;
         TableColumn<ShoppingItem, String> nameCol;
-        shoppingList = shoppingListApp.getShoppingList();
 
         amountCol = new TableColumn<>("Amount");
         nameCol = new TableColumn<>("Name");
@@ -178,10 +202,6 @@ public class GraphicalUserInterface extends Application {
 
         amountCol.prefWidthProperty().bind(table.widthProperty().multiply(0.3));
         nameCol.prefWidthProperty().bind(table.widthProperty().multiply(0.7));
-
-        for (int i = 0; i < shoppingList.size(); i++) {
-            table.getItems().add(shoppingList.get(i));
-        }
 
         table.getColumns().add(amountCol);
         table.getColumns().add(nameCol);

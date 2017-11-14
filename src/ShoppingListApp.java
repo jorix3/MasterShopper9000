@@ -1,5 +1,4 @@
 import fi.tamk.tiko.MyListPackage.MyLinkedList;
-
 import java.io.*;
 
 /**
@@ -18,7 +17,6 @@ public class ShoppingListApp {
     public ShoppingListApp() {
         shoppingList = new MyLinkedList<>();
     }
-
 
     /**
      * Returns shoppingList
@@ -144,6 +142,9 @@ public class ShoppingListApp {
         }
     }
 
+    /**
+     * Saves shoppingList contents to a txt file.
+     */
     public void saveToFile() {
         String data = "";
 
@@ -160,6 +161,9 @@ public class ShoppingListApp {
         }
     }
 
+    /**
+     * Load shoppingList contents from txt file.
+     */
     public void loadFromFile() {
         BufferedReader reader = null;
         String data = "";
@@ -178,12 +182,13 @@ public class ShoppingListApp {
         } finally {
             try {
                 reader.close();
-            } catch (IOException e) {
+            } catch (NullPointerException | IOException e) {
                 e.printStackTrace();
             }
         }
 
         if (inputChecker(data)) {
+            shoppingList = new MyLinkedList<>();
             inputHandler(data);
         }
     }
