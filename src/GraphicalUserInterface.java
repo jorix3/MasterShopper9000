@@ -85,11 +85,16 @@ public class GraphicalUserInterface extends Application {
         stage.setTitle("MasterShopper9000");
         stage.centerOnScreen();
         stage.initStyle(StageStyle.DECORATED);
+        stage.setMinWidth(375);
+        stage.setMinHeight(300);
 
         label.setPadding(new Insets(10, 0, 0, 0));
 
         table.setEditable(true);
         updateTable();
+
+        addButton.setMinWidth(75);
+        removeButton.setMinWidth(75);
 
         addButton.setOnAction(event -> modifyShoppingList(false));
         removeButton.setOnAction(event -> modifyShoppingList(true));
@@ -103,7 +108,7 @@ public class GraphicalUserInterface extends Application {
                 addButton,
                 removeButton);
 
-        bottomBar.setPadding(new Insets(10,0,0,0));
+        bottomBar.setPadding(new Insets(10,10,0,10));
         bottomBar.setSpacing(10);
         bottomBar.setAlignment(Pos.CENTER);
 
@@ -116,8 +121,8 @@ public class GraphicalUserInterface extends Application {
 
         scene = new Scene(contentPane, 640, 600);
         scene.getStylesheets().add("Style.css");
-        stage.setScene(scene);
 
+        stage.setScene(scene);
         stage.show();
     }
 
@@ -164,36 +169,46 @@ public class GraphicalUserInterface extends Application {
         MenuBar menuBar = new MenuBar();
 
         Menu menuFile = new Menu("File");
-        Menu menuEdit = new Menu("Edit");
+        Menu menuSettings = new Menu("Settings");
         Menu menuAbout = new Menu("About");
 
         RadioMenuItem music = new RadioMenuItem("Background Music");
-        MenuItem save = new MenuItem("Save");
-        MenuItem load = new MenuItem("Load");
-        SeparatorMenuItem separatorMenuItem = new SeparatorMenuItem();
+        MenuItem saveLocal = new MenuItem("Save");
+        MenuItem saveJDB = new MenuItem("Save to JavaDB");
+        MenuItem loadLocal = new MenuItem("Load");
+        MenuItem loadJDB = new MenuItem("Load from JavaDB");
         MenuItem exit = new MenuItem("Exit");
 
         MenuItem cut = new MenuItem("Cut (ctrl+x) - disabled");
         MenuItem copy = new MenuItem("Copy (ctrl+c) - disabled");
         MenuItem paste = new MenuItem("Paste (ctrl+v) - disabled");
 
-        MenuItem about = new MenuItem("About Lotto App  - disabled");
+        MenuItem about = new MenuItem("About MasterShopper9000 - disabled");
 
-        save.setOnAction(event -> saveFile());
-        load.setOnAction(event -> loadFile());
+        saveLocal.setOnAction(event -> saveFile());
+        loadLocal.setOnAction(event -> loadFile());
+        saveJDB.setOnAction(event -> shoppingListApp.saveToSQL());
+        loadJDB.setOnAction(event -> {
+            shoppingListApp.loadFromSQL();
+            updateTable();
+        });
         exit.setOnAction(event -> Platform.exit());
 
         music.setSelected(true);
 
-        menuFile.getItems().addAll(music,
-                save,
-                load,
-                separatorMenuItem,
-                exit);
+        menuFile.getItems().addAll(
+                saveLocal,
+                loadLocal,
+                new SeparatorMenuItem(),
+                saveJDB,
+                loadJDB,
+                new SeparatorMenuItem(),
+                exit
+        );
 
-        menuEdit.getItems().addAll(cut, copy, paste);
+        menuSettings.getItems().addAll(music, cut, copy, paste);
         menuAbout.getItems().addAll(about);
-        menuBar.getMenus().addAll(menuFile, menuEdit, menuAbout);
+        menuBar.getMenus().addAll(menuFile, menuSettings, menuAbout);
 
         return menuBar;
     }
@@ -263,6 +278,9 @@ public class GraphicalUserInterface extends Application {
 
         amountCol.prefWidthProperty().bind(table.widthProperty().multiply(0.3));
         nameCol.prefWidthProperty().bind(table.widthProperty().multiply(0.7));
+
+        amountCol.setResizable(false);
+        nameCol.setResizable(false);
 
         table.getColumns().add(amountCol);
         table.getColumns().add(nameCol);
