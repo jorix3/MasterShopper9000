@@ -154,6 +154,8 @@ public class ShoppingListApp {
 
     /**
      * Saves shoppingList contents to a txt file.
+     *
+     * @param  path  the file path for the txt file
      */
     public void saveToFile(String path) {
         String data = "";
@@ -173,6 +175,8 @@ public class ShoppingListApp {
 
     /**
      * Load shoppingList contents from txt file.
+     *
+     * @param  path  the file path for the txt file
      */
     public void loadFromFile(String path) {
         BufferedReader reader = null;
