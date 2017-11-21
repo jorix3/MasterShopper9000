@@ -1,4 +1,9 @@
+import com.dropbox.core.DbxException;
+import com.dropbox.core.DbxRequestConfig;
+import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.v2.users.FullAccount;
 import fi.tamk.tiko.MyListPackage.MyLinkedList;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -8,8 +13,12 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+
+import java.io.File;
 
 /**
  * GraphicalUserInterface
@@ -19,12 +28,15 @@ import javafx.stage.StageStyle;
  * @since       1.8
  */
 public class GraphicalUserInterface extends Application {
+    private final String ACCES_TOKEN = "ATeMJijlPUQAAAAAAAAIRNvyM_2hWgF-Yz" +
+            "InniaPO_4dyad0JWEr8rocnqBE65ml";
     private ShoppingListApp shoppingListApp;
-    private static MyLinkedList<ShoppingItem> shoppingList;
-    private static TableView<ShoppingItem> table;
-    private static Scene scene;
-    private static TextField nameField;
-    private static TextField amountField;
+    private MyLinkedList<ShoppingItem> shoppingList;
+    private TableView<ShoppingItem> table;
+    private Scene scene;
+    private TextField nameField;
+    private TextField amountField;
+    private FileChooser fileChooser;
 
     /**
      * @see Application#start(Stage) start
@@ -41,17 +53,48 @@ public class GraphicalUserInterface extends Application {
         nameField = new TextField("name");
         amountField = new TextField("amount");
         table = createTable();
+        fileChooser = new FileChooser();
+        ExtensionFilter filter;
+        filter = new ExtensionFilter("TXT files (*.txt)", "*.txt");
+        String myFolder = "MasterShopper9000";
+        File myAppFolder = new File(System.getProperty("user.home"), myFolder);
+
+        if (!myAppFolder.exists()) {
+            myAppFolder.mkdirs();
+        }
+
+        fileChooser.getExtensionFilters().add(filter);
+        fileChooser.setInitialFileName("shoppingList.txt");
+        fileChooser.setInitialDirectory(myAppFolder);
+
+//        DbxRequestConfig config = new DbxRequestConfig("MasterShopper9000");
+//        DbxClientV2 client = new DbxClientV2(config, ACCES_TOKEN);
+//
+//        FullAccount account = null;
+//
+//        try {
+//            account = client.users().getCurrentAccount();
+//        } catch (DbxException e) {
+//            e.printStackTrace();
+//        }
+//
+//        System.out.println(account.getName().getDisplayName());
 
         MenuBar menuBar = menuBarBuilder();
 
         stage.setTitle("MasterShopper9000");
         stage.centerOnScreen();
         stage.initStyle(StageStyle.DECORATED);
+        stage.setMinWidth(375);
+        stage.setMinHeight(300);
 
         label.setPadding(new Insets(10, 0, 0, 0));
 
         table.setEditable(true);
         updateTable();
+
+        addButton.setMinWidth(75);
+        removeButton.setMinWidth(75);
 
         addButton.setOnAction(event -> modifyShoppingList(false));
         removeButton.setOnAction(event -> modifyShoppingList(true));
@@ -65,7 +108,7 @@ public class GraphicalUserInterface extends Application {
                 addButton,
                 removeButton);
 
-        bottomBar.setPadding(new Insets(10,0,0,0));
+        bottomBar.setPadding(new Insets(10,10,0,10));
         bottomBar.setSpacing(10);
         bottomBar.setAlignment(Pos.CENTER);
 
@@ -78,8 +121,8 @@ public class GraphicalUserInterface extends Application {
 
         scene = new Scene(contentPane, 640, 600);
         scene.getStylesheets().add("Style.css");
-        stage.setScene(scene);
 
+        stage.setScene(scene);
         stage.show();
     }
 
@@ -91,6 +134,32 @@ public class GraphicalUserInterface extends Application {
 
     }
 
+
+    /**
+     * Open save to file dialog.
+     */
+    private void saveFile(){
+        File file = fileChooser.showSaveDialog(scene.getWindow());
+
+        if (file != null) {
+            String path = file.getPath();
+            shoppingListApp.saveToFile(path);
+        }
+    }
+
+    /**
+     * Open load from file dialog.
+     */
+    private void loadFile(){
+        File file = fileChooser.showOpenDialog(scene.getWindow());
+
+        if (file != null) {
+            String path = file.getPath();
+            shoppingListApp.loadFromFile(path);
+            updateTable();
+        }
+    }
+
     /**
      * Creates a menubar.
      *
@@ -100,39 +169,46 @@ public class GraphicalUserInterface extends Application {
         MenuBar menuBar = new MenuBar();
 
         Menu menuFile = new Menu("File");
-        Menu menuEdit = new Menu("Edit");
+        Menu menuSettings = new Menu("Settings");
         Menu menuAbout = new Menu("About");
 
         RadioMenuItem music = new RadioMenuItem("Background Music");
-        MenuItem save = new MenuItem("Save");
-        MenuItem load = new MenuItem("Load");
-        SeparatorMenuItem separatorMenuItem = new SeparatorMenuItem();
+        MenuItem saveLocal = new MenuItem("Save");
+        MenuItem saveJDB = new MenuItem("Save to JavaDB");
+        MenuItem loadLocal = new MenuItem("Load");
+        MenuItem loadJDB = new MenuItem("Load from JavaDB");
         MenuItem exit = new MenuItem("Exit");
 
         MenuItem cut = new MenuItem("Cut (ctrl+x) - disabled");
         MenuItem copy = new MenuItem("Copy (ctrl+c) - disabled");
         MenuItem paste = new MenuItem("Paste (ctrl+v) - disabled");
 
-        MenuItem about = new MenuItem("About Lotto App  - disabled");
+        MenuItem about = new MenuItem("About MasterShopper9000 - disabled");
 
-        save.setOnAction(event -> shoppingListApp.saveToFile());
-        load.setOnAction(event -> {
-            shoppingListApp.loadFromFile();
+        saveLocal.setOnAction(event -> saveFile());
+        loadLocal.setOnAction(event -> loadFile());
+        saveJDB.setOnAction(event -> shoppingListApp.saveToSQL());
+        loadJDB.setOnAction(event -> {
+            shoppingListApp.loadFromSQL();
             updateTable();
         });
         exit.setOnAction(event -> Platform.exit());
 
         music.setSelected(true);
 
-        menuFile.getItems().addAll(music,
-                save,
-                load,
-                separatorMenuItem,
-                exit);
+        menuFile.getItems().addAll(
+                saveLocal,
+                loadLocal,
+                new SeparatorMenuItem(),
+                saveJDB,
+                loadJDB,
+                new SeparatorMenuItem(),
+                exit
+        );
 
-        menuEdit.getItems().addAll(cut, copy, paste);
+        menuSettings.getItems().addAll(music, cut, copy, paste);
         menuAbout.getItems().addAll(about);
-        menuBar.getMenus().addAll(menuFile, menuEdit, menuAbout);
+        menuBar.getMenus().addAll(menuFile, menuSettings, menuAbout);
 
         return menuBar;
     }
@@ -202,6 +278,9 @@ public class GraphicalUserInterface extends Application {
 
         amountCol.prefWidthProperty().bind(table.widthProperty().multiply(0.3));
         nameCol.prefWidthProperty().bind(table.widthProperty().multiply(0.7));
+
+        amountCol.setResizable(false);
+        nameCol.setResizable(false);
 
         table.getColumns().add(amountCol);
         table.getColumns().add(nameCol);
