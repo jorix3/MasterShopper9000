@@ -13,16 +13,12 @@ import java.io.*;
  */
 public class ShoppingListApp {
     private MyLinkedList<ShoppingItem> shoppingList;
-    private Configuration cfg;
 
     /**
      * Instantiates a new ShoppingListApp.
      */
     public ShoppingListApp() {
         shoppingList = new MyLinkedList<>();
-        cfg = new Configuration();
-        cfg.configure();
-        cfg.addAnnotatedClass(ShoppingItem.class);
     }
 
     /**
@@ -202,94 +198,11 @@ public class ShoppingListApp {
     }
 
     public void saveToSQL() {
-        SessionFactory factory = cfg.buildSessionFactory();
-        Session session = factory.openSession();
-        String hgl = "DROP TABLE ShoppingItem";
-        Transaction transaction = null;
-        MyLinkedList<ShoppingItem> tmp = new MyLinkedList<>();
-
-        try {
-            transaction = session.beginTransaction();
-
-            session.createQuery(hgl).executeUpdate();
-
-            transaction.commit();
-        } catch (HibernateException e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-
-            e.printStackTrace();
-            return;
-        } finally {
-            session.close();
-            factory.close();
-        }
-
-//        try {
-//            transaction = session.beginTransaction();
-//
-//            for (int i = 0; i < shoppingList.size(); i++) {
-//                session.persist(shoppingList.get(i));
-//            }
-//
-//            transaction.commit();
-//        } catch (HibernateException e) {
-//            if (transaction != null) {
-//                transaction.rollback();
-//            }
-//
-//            e.printStackTrace();
-//
-//            try {
-//                transaction = session.beginTransaction();
-//
-//                for (int i = 0; i < tmp.size(); i++) {
-//                    session.persist(tmp.get(i));
-//                }
-//
-//                transaction.commit();
-//            } catch (HibernateException e) {
-//                if (transaction != null) {
-//                    transaction.rollback();
-//                }
-//
-//                e.printStackTrace();
-//            }
-//        } finally {
-//            session.close();
-//            factory.close();
-//        }
+        new SQLmanager().deleteAll();
+        new SQLmanager().save(getShoppingList());
     }
 
     public void loadFromSQL() {
-        SessionFactory factory = cfg.buildSessionFactory();
-        Session session = factory.openSession();
-        String hgl = "FROM ShoppingItem";
-        MyLinkedList<ShoppingItem> tmp = new MyLinkedList<>();
-        Transaction transaction = null;
-
-        try {
-            transaction = session.beginTransaction();
-
-            for (Object o : session.createQuery(hgl).getResultList()) {
-                ShoppingItem item = (ShoppingItem) o;
-                tmp.add(item);
-            }
-
-            transaction.commit();
-        } catch (HibernateException e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-
-            e.printStackTrace();
-            return;
-        } finally {
-            session.close();
-            factory.close();
-        }
-
-        shoppingList = tmp;
+        setShoppingList(new SQLmanager().load());
     }
 }

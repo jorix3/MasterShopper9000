@@ -8,10 +8,10 @@ import javax.persistence.*;
  * @since       1.8
  */
 @Entity
-@Table(name = "ShoppingItem")
+@Table(name = "SHOPPING_ITEM")
 public class ShoppingItem {
     @Id
-    @Column(name = "Name")
+    @Column(name = "Name", unique = true)
     private String name;
     @Column(name = "Amount")
     private int amount;
