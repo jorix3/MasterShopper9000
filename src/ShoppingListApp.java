@@ -1,5 +1,3 @@
-import org.hibernate.*;
-import org.hibernate.cfg.*;
 import fi.tamk.tiko.MyListPackage.MyLinkedList;
 
 import java.io.*;
@@ -13,12 +11,21 @@ import java.io.*;
  */
 public class ShoppingListApp {
     private MyLinkedList<ShoppingItem> shoppingList;
+    private SQLmanager sqlManager;
 
     /**
      * Instantiates a new ShoppingListApp.
      */
     public ShoppingListApp() {
         shoppingList = new MyLinkedList<>();
+        sqlManager = new SQLmanager();
+    }
+
+    /**
+     * Shutdown procedures.
+     */
+    public void close() {
+        sqlManager.close();
     }
 
     /**
@@ -197,12 +204,18 @@ public class ShoppingListApp {
         }
     }
 
+    /**
+     * Saves shoppingList contents to SQL database.
+     */
     public void saveToSQL() {
-        new SQLmanager().deleteAll();
-        new SQLmanager().save(getShoppingList());
+        sqlManager.deleteAll();
+        sqlManager.save(getShoppingList());
     }
 
+    /**
+     * Loads shoppingList contents from SQL database.
+     */
     public void loadFromSQL() {
-        setShoppingList(new SQLmanager().load());
+        setShoppingList(sqlManager.load());
     }
 }

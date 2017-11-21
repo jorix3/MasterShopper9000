@@ -1,7 +1,3 @@
-import com.dropbox.core.DbxException;
-import com.dropbox.core.DbxRequestConfig;
-import com.dropbox.core.v2.DbxClientV2;
-import com.dropbox.core.v2.users.FullAccount;
 import fi.tamk.tiko.MyListPackage.MyLinkedList;
 
 import javafx.application.Application;
@@ -113,7 +109,6 @@ public class GraphicalUserInterface extends Application {
         bottomBar.setAlignment(Pos.CENTER);
 
         contentPane.setTop(topPane);
-//        contentPane.setRight(slider);
         contentPane.setBottom(bottomBar);
         contentPane.setCenter(table);
         contentPane.setPadding(new Insets(0, 0, 10, 0));
@@ -131,7 +126,7 @@ public class GraphicalUserInterface extends Application {
      */
     @Override
     public void stop() {
-
+        shoppingListApp.close();
     }
 
 
@@ -173,6 +168,7 @@ public class GraphicalUserInterface extends Application {
         Menu menuAbout = new Menu("About");
 
         RadioMenuItem music = new RadioMenuItem("Background Music");
+        MenuItem clear = new MenuItem("Clear List");
         MenuItem saveLocal = new MenuItem("Save");
         MenuItem saveJDB = new MenuItem("Save to JavaDB");
         MenuItem loadLocal = new MenuItem("Load");
@@ -188,15 +184,22 @@ public class GraphicalUserInterface extends Application {
         saveLocal.setOnAction(event -> saveFile());
         loadLocal.setOnAction(event -> loadFile());
         saveJDB.setOnAction(event -> shoppingListApp.saveToSQL());
+        clear.setOnAction(event -> {
+            shoppingList.clear();
+            updateTable();
+        });
+
         loadJDB.setOnAction(event -> {
             shoppingListApp.loadFromSQL();
             updateTable();
         });
+
         exit.setOnAction(event -> Platform.exit());
 
         music.setSelected(true);
 
         menuFile.getItems().addAll(
+                clear,
                 saveLocal,
                 loadLocal,
                 new SeparatorMenuItem(),
@@ -223,9 +226,6 @@ public class GraphicalUserInterface extends Application {
      * @param  isSubtract  boolean determines if adding or subtracting
      */
     private void modifyShoppingList(boolean isSubtract) {
-//        cli.addToList(new ShoppingItem(5, "test-beer"));
-//        cli.addToList(new ShoppingItem(2, "test-milk"));
-
         if (!amountField.getText().isEmpty()
                 && !nameField.getText().isEmpty()) {
             int amount;

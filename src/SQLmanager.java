@@ -16,12 +16,27 @@ public class SQLmanager {
     private Configuration cfg;
     private SessionFactory factory;
 
+    /**
+     * Instantiates a new SQLmanager.
+     */
     public SQLmanager() {
         cfg = new Configuration();
         cfg.addAnnotatedClass(ShoppingItem.class);
         factory = cfg.configure().buildSessionFactory();
     }
 
+    /**
+     * Shutdown procedures.
+     */
+    public void close() {
+        factory.close();
+    }
+
+    /**
+     * Saves given MyLinkedList to SQL database.
+     *
+     * @param  list  content to save.
+     */
     public void save(MyLinkedList<ShoppingItem> list) {
         Session session = factory.openSession();
         Transaction transaction = null;
@@ -42,10 +57,14 @@ public class SQLmanager {
             e.printStackTrace();
         } finally {
             session.close();
-            factory.close();
         }
     }
 
+    /**
+     * Loads a content from SQL database.
+     *
+     * @return    MyLinkedList of ShoppingItems.
+     */
     public MyLinkedList<ShoppingItem> load() {
         Session session = factory.openSession();
         Transaction transaction = null;
@@ -70,12 +89,14 @@ public class SQLmanager {
             return null;
         } finally {
             session.close();
-            factory.close();
         }
 
         return list;
     }
 
+    /**
+     * Deletes all content from SQL database without dropping table.
+     */
     public void deleteAll() {
         Session session = factory.openSession();
         Transaction transaction = null;
@@ -98,7 +119,6 @@ public class SQLmanager {
             e.printStackTrace();
         } finally {
             session.close();
-            factory.close();
         }
     }
 }
