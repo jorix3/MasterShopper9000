@@ -14,12 +14,33 @@ public class SQLmanager {
     private SessionFactory factory;
 
     /**
-     * Instantiates a new SQLmanager.
+     * Instantiates a new SQLmanager with default properties.
      */
     public SQLmanager() {
         cfg = new Configuration();
         cfg.addAnnotatedClass(ShoppingItem.class);
         factory = cfg.configure().buildSessionFactory();
+    }
+
+    /**
+     * Instantiates a new SQLmanager with custom properties.
+     */
+    public SQLmanager(String host, String database,
+                      String userName, String password) {
+        cfg = new Configuration();
+        cfg.addAnnotatedClass(ShoppingItem.class);
+        cfg.configure();
+
+        try {
+            cfg.setProperty("hibernate.connection.url",
+                            "jdbc:mysql://" + host + "/" + database);
+            cfg.setProperty("hibernate.connection.username", userName);
+            cfg.setProperty("hibernate.connection.password", password);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+
+        factory = cfg.buildSessionFactory();
     }
 
     /**

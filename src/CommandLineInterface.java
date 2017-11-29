@@ -18,7 +18,7 @@ public class CommandLineInterface {
      * Instantiates a new Command line interface.
      */
     public CommandLineInterface() {
-        shoppingListApp = new ShoppingListApp();
+        shoppingListApp = new ShoppingListApp(false);
         scanner = new Scanner(System.in);
     }
 
@@ -70,6 +70,7 @@ public class CommandLineInterface {
      * Stops the command line interface
      */
     public void stop() {
+        shoppingListApp.close();
         System.exit(0);
     }
 
