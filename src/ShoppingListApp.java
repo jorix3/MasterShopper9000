@@ -5,15 +5,16 @@ import java.util.Properties;
 
 /**
  * ShoppingListApp
- * 
- * @author      Jyri Virtaranta jyri.virtaranta@cs.tamk.fi
- * @version     2017.11.14
- * @since       1.8
+ *
+ * @author Jyri Virtaranta jyri.virtaranta@cs.tamk.fi
+ * @version 2017.11.14
+ * @since 1.8
  */
 public class ShoppingListApp {
     private Properties settings;
     private MyLinkedList<ShoppingItem> shoppingList;
     private SQLmanager sqlManager;
+    private DropBoxManager dbManager;
     private File myFolder;
     private File mySettingsFile;
     private boolean online;
@@ -31,6 +32,11 @@ public class ShoppingListApp {
         runWebServices();
     }
 
+    /**
+     * Instantiates a new Shopping list app.
+     *
+     * @param  online  if true launch web services such as SQL connection
+     */
     public ShoppingListApp(boolean online) {
         setOnline(online);
         localServices();
@@ -40,6 +46,9 @@ public class ShoppingListApp {
         }
     }
 
+    /**
+     * Local services creates files and folders.
+     */
     private void localServices() {
         String myFolderPath = System.getProperty("user.home")
                                 + File.separator
@@ -61,7 +70,14 @@ public class ShoppingListApp {
         }
     }
 
+    /**
+     * Run sqlManager and DropBox connections.
+     */
     public void runWebServices() {
+        if (dbManager == null) {
+            dbManager = new DropBoxManager();
+        }
+
         if (sqlManager != null) {
             sqlManager.close();
             sqlManager = null;
@@ -79,6 +95,9 @@ public class ShoppingListApp {
         }
     }
 
+    /**
+     * Sets default sql settings to settings file.
+     */
     public void setDefaultSQLSettings() {
         try (OutputStream output = new FileOutputStream(mySettingsFile)) {
             settings.setProperty(HOST_TAG, "mydb.tamk.fi");
@@ -91,6 +110,14 @@ public class ShoppingListApp {
         }
     }
 
+    /**
+     * Sets custom sql settings to settings file.
+     *
+     * @param  host      the host name
+     * @param  database  the database name
+     * @param  userName  the user name
+     * @param  password  the password
+     */
     public void setCustomSQLSettings(String host, String database,
                                   String userName, String password) {
 
@@ -289,7 +316,7 @@ public class ShoppingListApp {
         }
 
         if (inputChecker(data)) {
-            shoppingList = new MyLinkedList<>();
+            shoppingList.clear();
             inputHandler(data);
         }
     }
@@ -304,6 +331,77 @@ public class ShoppingListApp {
         }
     }
 
+    /**
+     * Loads shoppingList contents from SQL database.
+     */
+    public void loadFromSQL() {
+        if (isOnline()) {
+            setShoppingList(sqlManager.load());
+        }
+    }
+
+    /**
+     * Save to DropBox if using webservices.
+     *
+     * @param  file  the file to save
+     */
+    public void saveToDropBox(File file) {
+        if (isOnline()) {
+            dbManager.save(file);
+        }
+    }
+
+    /**
+     * Load from DropBox if using webservices.
+     */
+    public void loadFromDropBox() {
+        if (isOnline()) {
+            loadFromDropBox();
+        }
+    }
+
+    /**
+     * Gets my folder.
+     *
+     * @return    my folder
+     */
+    public File getMyFolder() {
+        return myFolder;
+    }
+
+    /**
+     * Gets my settings file.
+     *
+     * @return    my settings file
+     */
+    public File getMySettingsFile() {
+        return mySettingsFile;
+    }
+
+    /**
+     * Is online boolean.
+     *
+     * @return    online boolean
+     */
+    public boolean isOnline() {
+        return online;
+    }
+
+    /**
+     * Sets online boolean.
+     *
+     * @param  online  boolean value affecting webservices
+     */
+    public void setOnline(boolean online) {
+        this.online = online;
+    }
+
+    /**
+     * Add new setting.
+     *
+     * @param  tag    tag to use
+     * @param  value  value to save for tag
+     */
     public void addNewSetting(String tag, String value) {
         try (OutputStream out = new FileOutputStream(mySettingsFile)) {
             settings.setProperty(tag, value);
@@ -313,6 +411,12 @@ public class ShoppingListApp {
         }
     }
 
+    /**
+     * Read setting string.
+     *
+     * @param  tag  tag to search for
+     * @return      string corresponding to tag
+     */
     public String readSetting(String tag) {
         String result = "";
 
@@ -324,30 +428,5 @@ public class ShoppingListApp {
         }
 
         return result;
-    }
-
-    /**
-     * Loads shoppingList contents from SQL database.
-     */
-    public void loadFromSQL() {
-        if (isOnline()) {
-            setShoppingList(sqlManager.load());
-        }
-    }
-
-    public File getMyFolder() {
-        return myFolder;
-    }
-
-    public File getMySettingsFile() {
-        return mySettingsFile;
-    }
-
-    public boolean isOnline() {
-        return online;
-    }
-
-    public void setOnline(boolean online) {
-        this.online = online;
     }
 }

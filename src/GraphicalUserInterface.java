@@ -27,8 +27,6 @@ import java.util.Properties;
  * @since       1.8
  */
 public class GraphicalUserInterface extends Application {
-    private final String ACCES_TOKEN = "ATeMJijlPUQAAAAAAAAIRNvyM_2hWgF-Yz" +
-            "InniaPO_4dyad0JWEr8rocnqBE65ml";
     private ShoppingListApp shoppingListApp;
     private MyLinkedList<ShoppingItem> shoppingList;
     private TableView<ShoppingItem> table;
@@ -84,19 +82,6 @@ public class GraphicalUserInterface extends Application {
         fileChooser.setInitialFileName("shoppingList.txt");
         fileChooser.setInitialDirectory(shoppingListApp.getMyFolder());
 
-//        DbxRequestConfig config = new DbxRequestConfig("MasterShopper9000");
-//        DbxClientV2 client = new DbxClientV2(config, ACCES_TOKEN);
-//
-//        FullAccount account = null;
-//
-//        try {
-//            account = client.users().getCurrentAccount();
-//        } catch (DbxException e) {
-//            e.printStackTrace();
-//        }
-//
-//        System.out.println(account.getName().getDisplayName());
-
         stage.setTitle("MasterShopper9000");
         stage.initStyle(StageStyle.DECORATED);
         stage.setMinWidth(375);
@@ -151,8 +136,8 @@ public class GraphicalUserInterface extends Application {
         File settingsFile = shoppingListApp.getMySettingsFile();
 
         try (OutputStream output = new FileOutputStream(settingsFile)) {
-            String width = String.valueOf(scene.getWindow().getWidth());
-            String height = String.valueOf(scene.getWindow().getHeight());
+            String width = String.valueOf(scene.getWidth());
+            String height = String.valueOf(scene.getHeight());
             String xPos = String.valueOf(scene.getWindow().getX());
             String yPos = String.valueOf(scene.getWindow().getY());
 
@@ -206,16 +191,16 @@ public class GraphicalUserInterface extends Application {
         Menu menuSettings = new Menu("Settings");
         Menu menuAbout = new Menu("About");
 
-        RadioMenuItem music = new RadioMenuItem("Background Music");
         MenuItem clear = new MenuItem("Clear List");
-        MenuItem saveLocal = new MenuItem("Save");
+        MenuItem saveLocal = new MenuItem("Save to file");
         MenuItem saveJDB = new MenuItem("Save to JavaDB");
-        MenuItem loadLocal = new MenuItem("Load");
+        MenuItem loadLocal = new MenuItem("Load from file");
         MenuItem loadJDB = new MenuItem("Load from JavaDB");
+        MenuItem saveToDB = new MenuItem("Upload file to DropBox");
         MenuItem exit = new MenuItem("Exit");
 
-        MenuItem sqlSettings = new MenuItem("set SQL settings");
-        MenuItem sqlDefault = new MenuItem("reset SQL settings");
+        MenuItem sqlSettings = new MenuItem("Set SQL settings");
+        MenuItem sqlDefault = new MenuItem("Reset SQL settings");
 
         MenuItem about = new MenuItem("About MasterShopper9000 - disabled");
 
@@ -232,9 +217,16 @@ public class GraphicalUserInterface extends Application {
             updateTable();
         });
 
+        saveToDB.setOnAction(event -> {
+            File file = fileChooser.showOpenDialog(scene.getWindow());
+
+            if (file != null) {
+                shoppingListApp.saveToDropBox(file);
+            }
+        });
+
         exit.setOnAction(event -> Platform.exit());
 
-        music.setSelected(true);
         sqlSettings.setOnAction(event -> sqlSettingsWindow());
         sqlDefault.setOnAction(event -> {
             shoppingListApp.setDefaultSQLSettings();
@@ -249,22 +241,39 @@ public class GraphicalUserInterface extends Application {
                 saveJDB,
                 loadJDB,
                 new SeparatorMenuItem(),
+                saveToDB,
+                new SeparatorMenuItem(),
                 exit
         );
 
-        menuSettings.getItems().addAll(music, sqlSettings, sqlDefault);
+        menuSettings.getItems().addAll(sqlSettings, sqlDefault);
         menuAbout.getItems().addAll(about);
         menuBar.getMenus().addAll(menuFile, menuSettings, menuAbout);
 
         return menuBar;
     }
 
-    public void sqlSettingsWindow() {
+    /**
+     * Open set sql settings window.
+     */
+    private void sqlSettingsWindow() {
         Dialog<String[]> dialog = new Dialog<>();
         dialog.setTitle("SQL settings");
 
-        ButtonType saveButton = new ButtonType("save", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(saveButton, ButtonType.CANCEL);
+        ButtonType saveButton = new ButtonType("Save",
+                                                ButtonBar.ButtonData.OK_DONE);
+//        ButtonType saveButton = ButtonType.APPLY;
+
+        dialog.getDialogPane()
+                .getButtonTypes()
+                .addAll(saveButton, ButtonType.CANCEL);
+
+        dialog.getDialogPane()
+                .lookupButton(saveButton)
+                .setStyle("-fx-base: #ebebeb");
+        dialog.getDialogPane()
+                .lookupButton(ButtonType.CANCEL)
+                .setStyle("-fx-base: #ebebeb");
 
         GridPane gp = new GridPane();
         gp.setHgap(10);
@@ -284,9 +293,9 @@ public class GraphicalUserInterface extends Application {
         gp.add(host, 1, 0);
         gp.add(new Label("Database name:"), 0, 1);
         gp.add(database, 1, 1);
-        gp.add(new Label("User name"), 0, 2);
+        gp.add(new Label("User name:"), 0, 2);
         gp.add(userName, 1, 2);
-        gp.add(new Label("Password"), 0, 3);
+        gp.add(new Label("Password:"), 0, 3);
         gp.add(password, 1, 3);
 
         dialog.getDialogPane().setContent(gp);
