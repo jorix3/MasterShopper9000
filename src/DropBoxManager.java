@@ -28,6 +28,8 @@ public class DropBoxManager {
 
     /**
      * Instantiates a new DropBox manager with custom properties.
+     *
+     * @param  accessToken  identifies DropBox account to connect to
      */
     public DropBoxManager(String accessToken) {
         DbxRequestConfig config = DbxRequestConfig

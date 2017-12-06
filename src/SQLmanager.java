@@ -24,6 +24,11 @@ public class SQLmanager {
 
     /**
      * Instantiates a new SQL manager with custom properties.
+     *
+     * @param  host      host address
+     * @param  database  database name
+     * @param  userName  name of user
+     * @param  password  user password
      */
     public SQLmanager(String host, String database,
                       String userName, String password) {
