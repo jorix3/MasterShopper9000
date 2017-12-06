@@ -14,7 +14,7 @@ public class SQLmanager {
     private SessionFactory factory;
 
     /**
-     * Instantiates a new SQLmanager with default properties.
+     * Instantiates a new SQL manager with default properties.
      */
     public SQLmanager() {
         cfg = new Configuration();
@@ -23,7 +23,7 @@ public class SQLmanager {
     }
 
     /**
-     * Instantiates a new SQLmanager with custom properties.
+     * Instantiates a new SQL manager with custom properties.
      */
     public SQLmanager(String host, String database,
                       String userName, String password) {

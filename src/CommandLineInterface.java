@@ -41,8 +41,8 @@ public class CommandLineInterface {
         System.out.println("Tampere University of Applied Sciences");
 
         while (isRunning) {
-            System.out.println("Give shopping list " +
-                    "(example: 1 milk;2 tomato;3 carrot;)");
+            System.out.println("Give shopping list "
+                            + "(example: 1 milk;2 tomato;3 carrot;)");
             command = scanner.nextLine().toLowerCase();
 
             if (command.equals("exit") ||

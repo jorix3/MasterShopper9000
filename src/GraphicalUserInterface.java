@@ -7,9 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
@@ -119,7 +117,6 @@ public class GraphicalUserInterface extends Application {
         contentPane.setBottom(bottomBar);
         contentPane.setCenter(table);
         contentPane.setPadding(new Insets(0, 0, 10, 0));
-        contentPane.setAlignment(addButton, Pos.CENTER);
 
         scene = new Scene(contentPane, windowWidth, windowHeight);
         scene.getStylesheets().add("Style.css");
@@ -130,6 +127,8 @@ public class GraphicalUserInterface extends Application {
 
     /**
      * @see Application#stop() stop
+     *
+     * <p>Saves window position and size to settings file.</p>
      */
     @Override
     public void stop() {
@@ -193,26 +192,28 @@ public class GraphicalUserInterface extends Application {
 
         MenuItem clear = new MenuItem("Clear List");
         MenuItem saveLocal = new MenuItem("Save to file");
-        MenuItem saveJDB = new MenuItem("Save to JavaDB");
+        MenuItem saveSQL = new MenuItem("Save to database");
         MenuItem loadLocal = new MenuItem("Load from file");
-        MenuItem loadJDB = new MenuItem("Load from JavaDB");
+        MenuItem loadSQL = new MenuItem("Load from database");
         MenuItem saveToDB = new MenuItem("Upload file to DropBox");
         MenuItem exit = new MenuItem("Exit");
 
         MenuItem sqlSettings = new MenuItem("Set SQL settings");
         MenuItem sqlDefault = new MenuItem("Reset SQL settings");
+        MenuItem dropBoxSettings = new MenuItem("Set DropBox settings");
+        MenuItem dropBoxDefault = new MenuItem("Reset DropBox settings");
 
         MenuItem about = new MenuItem("About MasterShopper9000 - disabled");
 
         saveLocal.setOnAction(event -> saveFile());
         loadLocal.setOnAction(event -> loadFile());
-        saveJDB.setOnAction(event -> shoppingListApp.saveToSQL());
+        saveSQL.setOnAction(event -> shoppingListApp.saveToSQL());
         clear.setOnAction(event -> {
             shoppingList.clear();
             updateTable();
         });
 
-        loadJDB.setOnAction(event -> {
+        loadSQL.setOnAction(event -> {
             shoppingListApp.loadFromSQL();
             updateTable();
         });
@@ -230,23 +231,32 @@ public class GraphicalUserInterface extends Application {
         sqlSettings.setOnAction(event -> sqlSettingsWindow());
         sqlDefault.setOnAction(event -> {
             shoppingListApp.setDefaultSQLSettings();
-            shoppingListApp.runWebServices();
+            shoppingListApp.reloadSQLmanager();
         });
 
-        menuFile.getItems().addAll(
-                clear,
-                saveLocal,
-                loadLocal,
-                new SeparatorMenuItem(),
-                saveJDB,
-                loadJDB,
-                new SeparatorMenuItem(),
-                saveToDB,
-                new SeparatorMenuItem(),
-                exit
-        );
+        dropBoxSettings.setOnAction(event -> dropBoxSettingsWindow());
+        dropBoxDefault.setOnAction(event -> {
+            shoppingListApp.setDefaultDropBoxSettings();
+            shoppingListApp.reloadDropBoxManager();
+        });
 
-        menuSettings.getItems().addAll(sqlSettings, sqlDefault);
+        menuFile.getItems().addAll(clear,
+                                    saveLocal,
+                                    loadLocal,
+                                    new SeparatorMenuItem(),
+                                    saveSQL,
+                                    loadSQL,
+                                    new SeparatorMenuItem(),
+                                    saveToDB,
+                                    new SeparatorMenuItem(),
+                                    exit);
+
+        menuSettings.getItems().addAll(sqlSettings,
+                                        sqlDefault,
+                                        new SeparatorMenuItem(),
+                                        dropBoxSettings,
+                                        dropBoxDefault);
+
         menuAbout.getItems().addAll(about);
         menuBar.getMenus().addAll(menuFile, menuSettings, menuAbout);
 
@@ -254,7 +264,7 @@ public class GraphicalUserInterface extends Application {
     }
 
     /**
-     * Open set sql settings window.
+     * Open set SQL settings window.
      */
     private void sqlSettingsWindow() {
         Dialog<String[]> dialog = new Dialog<>();
@@ -262,7 +272,6 @@ public class GraphicalUserInterface extends Application {
 
         ButtonType saveButton = new ButtonType("Save",
                                                 ButtonBar.ButtonData.OK_DONE);
-//        ButtonType saveButton = ButtonType.APPLY;
 
         dialog.getDialogPane()
                 .getButtonTypes()
@@ -316,11 +325,65 @@ public class GraphicalUserInterface extends Application {
         Optional<String[]> result = dialog.showAndWait();
 
         result.ifPresent(array -> {
-            shoppingListApp.setCustomSQLSettings(array[0],
-                                                array[1],
-                                                array[2],
-                                                array[3]);
-            shoppingListApp.runWebServices();
+            shoppingListApp.setSQLSettings(array[0],
+                                            array[1],
+                                            array[2],
+                                            array[3]);
+            shoppingListApp.reloadSQLmanager();
+        });
+    }
+
+    /**
+     * Open set DropBox settings window.
+     */
+    private void dropBoxSettingsWindow() {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("DropBox settings");
+        dialog.setHeaderText("You can generate an access token through: \n"
+                            + "https://www.dropbox.com/developers/apps");
+
+        ButtonType saveButton = new ButtonType("Save",
+                ButtonBar.ButtonData.OK_DONE);
+
+        dialog.getDialogPane()
+                .getButtonTypes()
+                .addAll(saveButton, ButtonType.CANCEL);
+
+        dialog.getDialogPane()
+                .lookupButton(saveButton)
+                .setStyle("-fx-base: #ebebeb");
+        dialog.getDialogPane()
+                .lookupButton(ButtonType.CANCEL)
+                .setStyle("-fx-base: #ebebeb");
+
+        GridPane gp = new GridPane();
+        gp.setHgap(10);
+        gp.setVgap(10);
+        gp.setPadding(new Insets(10));
+
+        TextField accessToken = new TextField();
+        accessToken.setPromptText("access token");
+        accessToken.setPrefWidth(600.0);
+
+        gp.add(new Label("Access Token:"), 0,0);
+        gp.add(accessToken, 1, 0);
+
+        dialog.getDialogPane().setContent(gp);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButton
+                    && !accessToken.getText().isEmpty()) {
+
+                return accessToken.getText();
+            }
+            return null;
+        });
+
+        Optional<String> result = dialog.showAndWait();
+
+        result.ifPresent(content -> {
+            shoppingListApp.setDropBoxSettings(content);
+            shoppingListApp.reloadDropBoxManager();
         });
     }
 
@@ -328,8 +391,10 @@ public class GraphicalUserInterface extends Application {
      * Modify shoppingList based on text fields.
      *
      * <p>If text field 'name' is not on the list adds new items.
-     * If it is on the list and given boolean is true it increases existing items amount.
-     * If it is on the list and given boolean is false it decreases existing items amount.</p>
+     * If it is on the list and given boolean is true,
+     * it increases existing items amount.
+     * If it is on the list and given boolean is false,
+     * it decreases existing items amount.</p>
      *
      * @param  isSubtract  boolean determines if adding or subtracting
      */
@@ -384,8 +449,10 @@ public class GraphicalUserInterface extends Application {
         amountCol.setCellValueFactory(new PropertyValueFactory<>("amount"));
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
 
-        amountCol.prefWidthProperty().bind(table.widthProperty().multiply(0.3));
-        nameCol.prefWidthProperty().bind(table.widthProperty().multiply(0.7));
+        amountCol.prefWidthProperty()
+                .bind(table.widthProperty().multiply(0.3));
+        nameCol.prefWidthProperty()
+                .bind(table.widthProperty().multiply(0.7));
 
         amountCol.setResizable(false);
         nameCol.setResizable(false);

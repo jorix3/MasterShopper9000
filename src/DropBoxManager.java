@@ -12,22 +12,32 @@ import java.io.*;
  * @since       1.8
  */
 public class DropBoxManager {
-    private final String ACCES_TOKEN = "ATeMJijlPUQAAAAAAAAIW72Kz5qt8Kdb3ldV6YDLwBvSSf6c6Umf6MuLhsbezGNB";
+    private final String ACCESS_TOKEN = "ATeMJijlPUQAAAAAAAAIW72Kz5qt8Kdb"
+                                    + "3ldV6YDLwBvSSf6c6Umf6MuLhsbezGNB";
     private DbxClientV2 client;
 
     /**
-     * Instantiates a new Drop box manager.
+     * Instantiates a new DropBox manager with default properties.
      */
     public DropBoxManager() {
-        DbxRequestConfig config;
-        config = DbxRequestConfig.newBuilder("MasterShopper9000/1.0").build();
-        client = new DbxClientV2(config, ACCES_TOKEN);
-
-
+        DbxRequestConfig config = DbxRequestConfig
+                                    .newBuilder("MasterShopper9000/1.0")
+                                    .build();
+        client = new DbxClientV2(config, ACCESS_TOKEN);
     }
 
     /**
-     * Saves file to dropbox.
+     * Instantiates a new DropBox manager with custom properties.
+     */
+    public DropBoxManager(String accessToken) {
+        DbxRequestConfig config = DbxRequestConfig
+                                    .newBuilder("MasterShopper9000/1.0")
+                                    .build();
+        client = new DbxClientV2(config, accessToken);
+    }
+
+    /**
+     * Saves file to DropBox.
      *
      * @param  file  the file to save
      */
@@ -40,7 +50,7 @@ public class DropBoxManager {
         }
     }
 
-    public void load(String path) {
-
-    }
+//    public void load(String path) {
+//
+//    }
 }

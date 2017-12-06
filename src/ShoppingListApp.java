@@ -6,9 +6,9 @@ import java.util.Properties;
 /**
  * ShoppingListApp
  *
- * @author Jyri Virtaranta jyri.virtaranta@cs.tamk.fi
- * @version 2017.11.14
- * @since 1.8
+ * @author      Jyri Virtaranta jyri.virtaranta@cs.tamk.fi
+ * @version     2017.11.14
+ * @since       1.8
  */
 public class ShoppingListApp {
     private Properties settings;
@@ -22,6 +22,7 @@ public class ShoppingListApp {
     private final String DATABASE_TAG = "database";
     private final String USERNAME_TAG = "username";
     private final String PASSWORD_TAG = "password";
+    private final String ACCESS_TOKEN_TAG = "accessToken";
 
     /**
      * Instantiates a new ShoppingListApp.
@@ -29,7 +30,8 @@ public class ShoppingListApp {
     public ShoppingListApp() {
         setOnline(true);
         localServices();
-        runWebServices();
+        reloadSQLmanager();
+        reloadDropBoxManager();
     }
 
     /**
@@ -42,12 +44,13 @@ public class ShoppingListApp {
         localServices();
 
         if (isOnline()) {
-            runWebServices();
+            reloadSQLmanager();
+            reloadDropBoxManager();
         }
     }
 
     /**
-     * Local services creates files and folders.
+     * Instantiate local services, creates files and folders.
      */
     private void localServices() {
         String myFolderPath = System.getProperty("user.home")
@@ -67,17 +70,14 @@ public class ShoppingListApp {
 
         if (!mySettingsFile.exists()) {
             setDefaultSQLSettings();
+            setDefaultDropBoxSettings();
         }
     }
 
     /**
-     * Run sqlManager and DropBox connections.
+     * Reload sqlManager connection.
      */
-    public void runWebServices() {
-        if (dbManager == null) {
-            dbManager = new DropBoxManager();
-        }
-
+    public void reloadSQLmanager() {
         if (sqlManager != null) {
             sqlManager.close();
             sqlManager = null;
@@ -89,14 +89,35 @@ public class ShoppingListApp {
                                         settings.getProperty(DATABASE_TAG),
                                         settings.getProperty(USERNAME_TAG),
                                         settings.getProperty(PASSWORD_TAG));
-        } catch (IOException e) {
+        } catch (NullPointerException | IOException e) {
             e.printStackTrace();
             setOnline(false);
         }
     }
 
     /**
-     * Sets default sql settings to settings file.
+     * Reload DropBoxManager connection.
+     */
+    public void reloadDropBoxManager() {
+        String accessToken = "";
+
+        try (InputStream input = new FileInputStream(mySettingsFile)) {
+            settings.load(input);
+            accessToken = settings.getProperty(ACCESS_TOKEN_TAG);
+        } catch (NullPointerException | IOException e) {
+            e.printStackTrace();
+            setOnline(false);
+        }
+
+        if (accessToken.equals("default")) {
+            dbManager = new DropBoxManager();
+        } else {
+            dbManager = new DropBoxManager(accessToken);
+        }
+    }
+
+    /**
+     * Sets default SQL settings to settings file.
      */
     public void setDefaultSQLSettings() {
         try (OutputStream output = new FileOutputStream(mySettingsFile)) {
@@ -111,21 +132,47 @@ public class ShoppingListApp {
     }
 
     /**
-     * Sets custom sql settings to settings file.
+     * Sets default DropBox settings to settings file.
+     */
+    public void setDefaultDropBoxSettings() {
+        try (OutputStream output = new FileOutputStream(mySettingsFile)) {
+            settings.setProperty(ACCESS_TOKEN_TAG, "default");
+            settings.store(output, "Settings file for ShoppingListApp");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Sets custom SQL settings to settings file.
      *
      * @param  host      the host name
      * @param  database  the database name
      * @param  userName  the user name
      * @param  password  the password
      */
-    public void setCustomSQLSettings(String host, String database,
-                                  String userName, String password) {
+    public void setSQLSettings(String host, String database,
+                               String userName, String password) {
 
         try (OutputStream output = new FileOutputStream(mySettingsFile)) {
             settings.setProperty(HOST_TAG, host);
             settings.setProperty(DATABASE_TAG, database);
             settings.setProperty(USERNAME_TAG, userName);
             settings.setProperty(PASSWORD_TAG, password);
+            settings.store(output, "Settings file for ShoppingListApp");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Sets custom DropBox settings to settings file.
+     *
+     * @param  accessToken  DropBox access token
+     */
+    public void setDropBoxSettings(String accessToken) {
+        try (OutputStream output = new FileOutputStream(mySettingsFile)) {
+            settings.setProperty(ACCESS_TOKEN_TAG, accessToken);
             settings.store(output, "Settings file for ShoppingListApp");
         } catch (IOException e) {
             e.printStackTrace();
@@ -275,7 +322,7 @@ public class ShoppingListApp {
 
         for (int i = 0; i < shoppingList.size(); i++) {
             data += shoppingList.get(i).getAmount() + " ";
-            data += shoppingList.get(i).getName() + ";";
+            data += shoppingList.get(i).getName() + "\n";
         }
 
         try (Writer writer = new BufferedWriter(new OutputStreamWriter(
@@ -300,7 +347,7 @@ public class ShoppingListApp {
             String line;
 
             while ((line = reader.readLine()) != null) {
-                data += line;
+                data += line + ";";
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -356,7 +403,7 @@ public class ShoppingListApp {
      */
     public void loadFromDropBox() {
         if (isOnline()) {
-            loadFromDropBox();
+
         }
     }
 
