@@ -37,15 +37,19 @@ public class GraphicalUserInterface extends Application {
     private double windowHeight;
     private double windowXpos;
     private double windowYpos;
+    private boolean localDatabase;
 
     /**
      * @see Application#start(Stage) start
      */
     @Override
     public void start(Stage stage) {
+        // Read settings from shoppingListApp settings file //
         shoppingListApp = new ShoppingListApp();
         settings = new Properties();
+        readSettings();
 
+        // Create main window content //
         MenuBar menuBar = menuBarBuilder();
         Button addButton = new Button("Add");
         Button removeButton = new Button("Remove");
@@ -55,31 +59,16 @@ public class GraphicalUserInterface extends Application {
         amountField = new TextField();
         table = createTable();
 
+        // Set file chooser filters and settings //
         fileChooser = new FileChooser();
         ExtensionFilter filter = new ExtensionFilter("TXT files (*.txt)",
                                                     "*.txt");
-
-        File settingsFile = shoppingListApp.getMySettingsFile();
-
-        try (InputStream input = new FileInputStream(settingsFile)) {
-            settings.load(input);
-            String width = settings.getProperty("windowWidth", "640");
-            String height = settings.getProperty("windowHeight", "600");
-            String xPos = settings.getProperty("windowXpos", "-1");
-            String yPos = settings.getProperty("windowYpos", "-1");
-
-            windowXpos = Double.parseDouble(xPos);
-            windowYpos = Double.parseDouble(yPos);
-            windowWidth = Double.parseDouble(width);
-            windowHeight = Double.parseDouble(height);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
         fileChooser.getExtensionFilters().add(filter);
         fileChooser.setInitialFileName("shoppingList.txt");
         fileChooser.setInitialDirectory(shoppingListApp.getMyFolder());
 
+        // Set stage settings //
         stage.setTitle("MasterShopper9000");
         stage.initStyle(StageStyle.DECORATED);
         stage.setMinWidth(375);
@@ -92,41 +81,41 @@ public class GraphicalUserInterface extends Application {
             stage.setY(windowYpos);
         }
 
+        // Set main window content settings //
         nameField.setPromptText("name");
         amountField.setPromptText("amount");
-
         table.setEditable(true);
         updateTable();
-
         addButton.setMinWidth(75);
         removeButton.setMinWidth(75);
-
         addButton.setOnAction(event -> modifyShoppingList(false));
         removeButton.setOnAction(event -> modifyShoppingList(true));
 
+        // Populate bottomBar and adjust visuals //
         bottomBar.getChildren().addAll(amountField,
-                nameField,
-                addButton,
-                removeButton);
+                                        nameField,
+                                        addButton,
+                                        removeButton);
 
         bottomBar.setPadding(new Insets(10,10,0,10));
         bottomBar.setSpacing(10);
         bottomBar.setAlignment(Pos.CENTER);
 
+        // Populate main content and set visuals //
         contentPane.setTop(menuBar);
         contentPane.setBottom(bottomBar);
         contentPane.setCenter(table);
         contentPane.setPadding(new Insets(0, 0, 10, 0));
 
+        // Finish stage and scene //
         scene = new Scene(contentPane, windowWidth, windowHeight);
         scene.getStylesheets().add("Style.css");
-
         stage.setScene(scene);
         stage.show();
     }
 
     /**
-     * @see Application#stop() stop
+     * @see Application#stop() close
      *
      * <p>Saves window position and size to settings file.</p>
      */
@@ -139,11 +128,13 @@ public class GraphicalUserInterface extends Application {
             String height = String.valueOf(scene.getHeight());
             String xPos = String.valueOf(scene.getWindow().getX());
             String yPos = String.valueOf(scene.getWindow().getY());
+            String isOnline = String.valueOf(localDatabase);
 
             settings.setProperty("windowWidth", width);
             settings.setProperty("windowHeight", height);
             settings.setProperty("windowXpos", xPos);
             settings.setProperty("windowYpos", yPos);
+            settings.setProperty("localDatabase", isOnline);
             settings.store(output, "Settings file for ShoppingListApp");
         } catch (IOException e) {
             e.printStackTrace();
@@ -152,6 +143,29 @@ public class GraphicalUserInterface extends Application {
         shoppingListApp.close();
     }
 
+    /**
+     * Read settings such as window position and size.
+     */
+    private void readSettings() {
+        File settingsFile = shoppingListApp.getMySettingsFile();
+
+        try (InputStream input = new FileInputStream(settingsFile)) {
+            settings.load(input);
+            String width = settings.getProperty("windowWidth", "640");
+            String height = settings.getProperty("windowHeight", "600");
+            String xPos = settings.getProperty("windowXpos", "-1");
+            String yPos = settings.getProperty("windowYpos", "-1");
+            String isOnline = settings.getProperty("localDatabase", "false");
+
+            windowXpos = Double.parseDouble(xPos);
+            windowYpos = Double.parseDouble(yPos);
+            windowWidth = Double.parseDouble(width);
+            windowHeight = Double.parseDouble(height);
+            localDatabase = Boolean.valueOf(isOnline);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Open save to file dialog.
@@ -192,33 +206,60 @@ public class GraphicalUserInterface extends Application {
 
         MenuItem clear = new MenuItem("Clear List");
         MenuItem saveLocal = new MenuItem("Save to file");
-        MenuItem saveSQL = new MenuItem("Save to database");
+        MenuItem saveDatabase = new MenuItem("Save to database");
         MenuItem loadLocal = new MenuItem("Load from file");
-        MenuItem loadSQL = new MenuItem("Load from database");
-        MenuItem saveToDB = new MenuItem("Upload file to DropBox");
+        MenuItem loadDatabase = new MenuItem("Load from database");
+        MenuItem saveDropBox = new MenuItem("Upload file to DropBox");
         MenuItem exit = new MenuItem("Exit");
 
-        MenuItem sqlSettings = new MenuItem("Set SQL settings");
-        MenuItem sqlDefault = new MenuItem("Reset SQL settings");
+        Menu database = new Menu("Choose database");
+        RadioMenuItem sql = new RadioMenuItem("Use MySQL");
+        RadioMenuItem derby = new RadioMenuItem("Use Derby");
+
+        MenuItem sqlSettings = new MenuItem("Set MySQL settings");
+        MenuItem sqlDefault = new MenuItem("Reset MySQL settings");
         MenuItem dropBoxSettings = new MenuItem("Set DropBox settings");
         MenuItem dropBoxDefault = new MenuItem("Reset DropBox settings");
 
         MenuItem about = new MenuItem("About MasterShopper9000 - disabled");
 
-        saveLocal.setOnAction(event -> saveFile());
-        loadLocal.setOnAction(event -> loadFile());
-        saveSQL.setOnAction(event -> shoppingListApp.saveToSQL());
+        ToggleGroup tg = new ToggleGroup();
+        sql.setToggleGroup(tg);
+        derby.setToggleGroup(tg);
+
+        if (localDatabase) {
+            derby.setSelected(true);
+        } else {
+            sql.setSelected(true);
+        }
+
         clear.setOnAction(event -> {
             shoppingList.clear();
             updateTable();
         });
 
-        loadSQL.setOnAction(event -> {
-            shoppingListApp.loadFromSQL();
+        saveLocal.setOnAction(event -> saveFile());
+        loadLocal.setOnAction(event -> loadFile());
+
+        saveDatabase.setOnAction(event -> {
+            if (localDatabase) {
+                shoppingListApp.saveToDerby();
+            } else {
+                shoppingListApp.saveToSQL();
+            }
+        });
+
+        loadDatabase.setOnAction(event -> {
+            if (localDatabase) {
+                shoppingListApp.loadFromDerby();
+            } else {
+                shoppingListApp.loadFromSQL();
+            }
+
             updateTable();
         });
 
-        saveToDB.setOnAction(event -> {
+        saveDropBox.setOnAction(event -> {
             File file = fileChooser.showOpenDialog(scene.getWindow());
 
             if (file != null) {
@@ -244,14 +285,20 @@ public class GraphicalUserInterface extends Application {
                                     saveLocal,
                                     loadLocal,
                                     new SeparatorMenuItem(),
-                                    saveSQL,
-                                    loadSQL,
+                                    saveDatabase,
+                                    loadDatabase,
                                     new SeparatorMenuItem(),
-                                    saveToDB,
+                                    saveDropBox,
                                     new SeparatorMenuItem(),
                                     exit);
 
-        menuSettings.getItems().addAll(sqlSettings,
+        sql.setOnAction(event -> localDatabase = false);
+        derby.setOnAction(event -> localDatabase = true);
+
+        database.getItems().addAll(sql, derby);
+
+        menuSettings.getItems().addAll(database,
+                                        sqlSettings,
                                         sqlDefault,
                                         new SeparatorMenuItem(),
                                         dropBoxSettings,

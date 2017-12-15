@@ -14,10 +14,11 @@ public class ShoppingListApp {
     private Properties settings;
     private MyLinkedList<ShoppingItem> shoppingList;
     private SQLmanager sqlManager;
+    private DerbyManager derbyManager;
     private DropBoxManager dbManager;
     private File myFolder;
     private File mySettingsFile;
-    private boolean online;
+    private boolean isSimplified;
     private final String HOST_TAG = "host";
     private final String DATABASE_TAG = "database";
     private final String USERNAME_TAG = "username";
@@ -28,8 +29,10 @@ public class ShoppingListApp {
      * Instantiates a new ShoppingListApp.
      */
     public ShoppingListApp() {
-        setOnline(true);
+        setSimplified(false);
         localServices();
+
+        reloadDerbyManager();
         reloadSQLmanager();
         reloadDropBoxManager();
     }
@@ -37,13 +40,14 @@ public class ShoppingListApp {
     /**
      * Instantiates a new Shopping list app.
      *
-     * @param  online  if true launch web services such as SQL connection
+     * @param  isSimplified  if false launch services like MySQL connection
      */
-    public ShoppingListApp(boolean online) {
-        setOnline(online);
+    public ShoppingListApp(boolean isSimplified) {
+        setSimplified(isSimplified);
         localServices();
 
-        if (isOnline()) {
+        if (!isSimplified()) {
+            reloadDerbyManager();
             reloadSQLmanager();
             reloadDropBoxManager();
         }
@@ -75,7 +79,19 @@ public class ShoppingListApp {
     }
 
     /**
-     * Reload sqlManager connection.
+     * Reload derbyManager connection.
+     */
+    public void reloadDerbyManager() {
+        if (derbyManager != null) {
+            derbyManager.close();
+            derbyManager = null;
+        }
+
+        derbyManager = new DerbyManager(myFolder.getPath());
+    }
+
+    /**
+     * Reload MySQLmanager connection.
      */
     public void reloadSQLmanager() {
         if (sqlManager != null) {
@@ -91,7 +107,7 @@ public class ShoppingListApp {
                                         settings.getProperty(PASSWORD_TAG));
         } catch (NullPointerException | IOException e) {
             e.printStackTrace();
-            setOnline(false);
+            setSimplified(true);
         }
     }
 
@@ -106,7 +122,7 @@ public class ShoppingListApp {
             accessToken = settings.getProperty(ACCESS_TOKEN_TAG);
         } catch (NullPointerException | IOException e) {
             e.printStackTrace();
-            setOnline(false);
+            setSimplified(true);
         }
 
         if (accessToken.equals("default")) {
@@ -117,7 +133,7 @@ public class ShoppingListApp {
     }
 
     /**
-     * Sets default SQL settings to settings file.
+     * Sets default MySQL settings to settings file.
      */
     public void setDefaultSQLSettings() {
         try (OutputStream output = new FileOutputStream(mySettingsFile)) {
@@ -183,8 +199,9 @@ public class ShoppingListApp {
      * Shutdown procedures.
      */
     public void close() {
-        if (isOnline()) {
+        if (!isSimplified()) {
             sqlManager.close();
+            derbyManager.close();
         }
     }
 
@@ -369,40 +386,58 @@ public class ShoppingListApp {
     }
 
     /**
-     * Saves shoppingList contents to SQL database.
+     * Saves shoppingList contents to Derby database if not isSimplified.
+     */
+    public void saveToDerby() {
+        if (!isSimplified()) {
+            derbyManager.save(getShoppingList());
+        }
+    }
+
+    /**
+     * Loads shoppingList content from Derby database if not isSimplified.
+     */
+    public void loadFromDerby() {
+        if (!isSimplified()) {
+            setShoppingList(derbyManager.load());
+        }
+    }
+
+    /**
+     * Saves shoppingList contents to MySQL database if not isSimplified.
      */
     public void saveToSQL() {
-        if (isOnline()) {
+        if (!isSimplified()) {
             sqlManager.deleteAll();
             sqlManager.save(getShoppingList());
         }
     }
 
     /**
-     * Loads shoppingList contents from SQL database.
+     * Loads shoppingList contents from MySQL database if not isSimplified.
      */
     public void loadFromSQL() {
-        if (isOnline()) {
+        if (!isSimplified()) {
             setShoppingList(sqlManager.load());
         }
     }
 
     /**
-     * Save to DropBox if using webservices.
+     * Saves to DropBox if not isSimplified.
      *
      * @param  file  the file to save
      */
     public void saveToDropBox(File file) {
-        if (isOnline()) {
+        if (!isSimplified()) {
             dbManager.save(file);
         }
     }
 
     /**
-     * Load from DropBox if using webservices.
+     * Loads from DropBox if not isSimplified.
      */
     public void loadFromDropBox() {
-        if (isOnline()) {
+        if (!isSimplified()) {
 
         }
     }
@@ -426,21 +461,21 @@ public class ShoppingListApp {
     }
 
     /**
-     * Is online boolean.
+     * Get isSimplified boolean.
      *
-     * @return    online boolean
+     * @return    isSimplified boolean
      */
-    public boolean isOnline() {
-        return online;
+    public boolean isSimplified() {
+        return isSimplified;
     }
 
     /**
-     * Sets online boolean.
+     * Sets isSimplified boolean.
      *
-     * @param  online  boolean value affecting webservices
+     * @param  isSimplified  boolean value affecting extended services
      */
-    public void setOnline(boolean online) {
-        this.online = online;
+    public void setSimplified(boolean isSimplified) {
+        this.isSimplified = isSimplified;
     }
 
     /**

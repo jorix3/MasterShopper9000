@@ -18,7 +18,7 @@ public class CommandLineInterface {
      * Instantiates a new Command line interface.
      */
     public CommandLineInterface() {
-        shoppingListApp = new ShoppingListApp(false);
+        shoppingListApp = new ShoppingListApp(true);
         scanner = new Scanner(System.in);
     }
 
