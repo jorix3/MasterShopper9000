@@ -18,7 +18,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 /**
- * GraphicalUserInterface
+ * GraphicalUserInterface is a JavaFX based way to control MasterShopper9000
  * 
  * @author      Jyri Virtaranta jyri.virtaranta@cs.tamk.fi
  * @version     2017.11.14
@@ -44,12 +44,12 @@ public class GraphicalUserInterface extends Application {
      */
     @Override
     public void start(Stage stage) {
-        // Read settings from shoppingListApp settings file //
+        // Read settings from shoppingListApp settings file
         shoppingListApp = new ShoppingListApp();
         settings = new Properties();
         readSettings();
 
-        // Create main window content //
+        // Create main window content
         MenuBar menuBar = menuBarBuilder();
         Button addButton = new Button("Add");
         Button removeButton = new Button("Remove");
@@ -59,7 +59,7 @@ public class GraphicalUserInterface extends Application {
         amountField = new TextField();
         table = createTable();
 
-        // Set file chooser filters and settings //
+        // Set file chooser filters and settings
         fileChooser = new FileChooser();
         ExtensionFilter filter = new ExtensionFilter("TXT files (*.txt)",
                                                     "*.txt");
@@ -68,7 +68,7 @@ public class GraphicalUserInterface extends Application {
         fileChooser.setInitialFileName("shoppingList.txt");
         fileChooser.setInitialDirectory(shoppingListApp.getMyFolder());
 
-        // Set stage settings //
+        // Set stage settings
         stage.setTitle("MasterShopper9000");
         stage.initStyle(StageStyle.DECORATED);
         stage.setMinWidth(375);
@@ -81,7 +81,7 @@ public class GraphicalUserInterface extends Application {
             stage.setY(windowYpos);
         }
 
-        // Set main window content settings //
+        // Set main window content settings
         nameField.setPromptText("name");
         amountField.setPromptText("amount");
         table.setEditable(true);
@@ -91,7 +91,7 @@ public class GraphicalUserInterface extends Application {
         addButton.setOnAction(event -> modifyShoppingList(false));
         removeButton.setOnAction(event -> modifyShoppingList(true));
 
-        // Populate bottomBar and adjust visuals //
+        // Populate bottomBar and adjust visuals
         bottomBar.getChildren().addAll(amountField,
                                         nameField,
                                         addButton,
@@ -101,13 +101,13 @@ public class GraphicalUserInterface extends Application {
         bottomBar.setSpacing(10);
         bottomBar.setAlignment(Pos.CENTER);
 
-        // Populate main content and set visuals //
+        // Populate main content and set visuals
         contentPane.setTop(menuBar);
         contentPane.setBottom(bottomBar);
         contentPane.setCenter(table);
         contentPane.setPadding(new Insets(0, 0, 10, 0));
 
-        // Finish stage and scene //
+        // Finish stage and scene
         scene = new Scene(contentPane, windowWidth, windowHeight);
         scene.getStylesheets().add("Style.css");
         stage.setScene(scene);
@@ -200,10 +200,12 @@ public class GraphicalUserInterface extends Application {
     private MenuBar menuBarBuilder() {
         MenuBar menuBar = new MenuBar();
 
+        // high level menus
         Menu menuFile = new Menu("File");
         Menu menuSettings = new Menu("Settings");
         Menu menuAbout = new Menu("About");
 
+        // content for "File" menu
         MenuItem clear = new MenuItem("Clear List");
         MenuItem saveLocal = new MenuItem("Save to file");
         MenuItem saveDatabase = new MenuItem("Save to database");
@@ -212,15 +214,18 @@ public class GraphicalUserInterface extends Application {
         MenuItem saveDropBox = new MenuItem("Upload file to DropBox");
         MenuItem exit = new MenuItem("Exit");
 
+        // content for "Settings" menu
         Menu database = new Menu("Choose database");
-        RadioMenuItem sql = new RadioMenuItem("Use MySQL");
-        RadioMenuItem derby = new RadioMenuItem("Use Derby");
-
         MenuItem sqlSettings = new MenuItem("Set MySQL settings");
         MenuItem sqlDefault = new MenuItem("Reset MySQL settings");
         MenuItem dropBoxSettings = new MenuItem("Set DropBox settings");
         MenuItem dropBoxDefault = new MenuItem("Reset DropBox settings");
 
+        // content for "Choose database" sub menu
+        RadioMenuItem sql = new RadioMenuItem("Use MySQL");
+        RadioMenuItem derby = new RadioMenuItem("Use Derby");
+
+        // content for "About" menu
         MenuItem about = new MenuItem("About MasterShopper9000 - disabled");
 
         ToggleGroup tg = new ToggleGroup();

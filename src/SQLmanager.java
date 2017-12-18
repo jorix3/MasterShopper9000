@@ -3,7 +3,7 @@ import org.hibernate.*;
 import org.hibernate.cfg.*;
 
 /**
- * SQLmanager
+ * SQLmanager controls SQL database
  * 
  * @author      Jyri Virtaranta jyri.virtaranta@cs.tamk.fi
  * @version     2017.11.21

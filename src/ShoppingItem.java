@@ -1,7 +1,7 @@
 import javax.persistence.*;
 
 /**
- * ShoppingItem
+ * ShoppingItem represents a unique item with amount IE: "4 eggs"
  *
  * @author      Jyri Virtaranta jyri.virtaranta@cs.tamk.fi
  * @version     2017.11.05

@@ -4,8 +4,8 @@ import java.io.File;
 import java.sql.*;
 
 /**
- * DerbyManager
- * 
+ * DerbyManager controls derby database
+ *
  * @author      Jyri Virtaranta jyri.virtaranta@cs.tamk.fi
  * @version     2017.12.15
  * @since       1.8
@@ -24,6 +24,7 @@ public class DerbyManager {
                         + File.separator
                         + "DerbyManager";
         dbURL = "jdbc:derby:directory:" + path + "/.derby;create=true";
+        System.setProperty("derby.system.home", path);
         start();
     }
 
@@ -34,6 +35,7 @@ public class DerbyManager {
      */
     public DerbyManager(String path) {
         dbURL = "jdbc:derby:directory:" + path + "/.derby;create=true";
+        System.setProperty("derby.system.home", path);
         start();
     }
 
@@ -42,10 +44,12 @@ public class DerbyManager {
      */
     private void start() {
         try {
-            Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance();
+            Class.forName("org.apache.derby.jdbc.EmbeddedDriver")
+                    .newInstance();
             connection = DriverManager.getConnection(dbURL);
             statement = connection.createStatement();
-        } catch (SQLException | ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+        } catch (SQLException | ClassNotFoundException
+                | IllegalAccessException | InstantiationException e) {
             e.printStackTrace();
         }
     }
@@ -64,10 +68,10 @@ public class DerbyManager {
 
             for (int i = 0; i < list.size(); i++) {
                 ShoppingItem item = list.get(i);
+                PreparedStatement ps;
 
-                PreparedStatement ps = connection.prepareStatement(
-                        "INSERT INTO App.ShoppingItem VALUES(?, ?)"
-                );
+                ps = connection.prepareStatement("INSERT INTO App.ShoppingItem"
+                                                    + " VALUES(?, ?)");
 
                 ps.setString(1, item.getName());
                 ps.setInt(2, item.getAmount());
@@ -87,7 +91,9 @@ public class DerbyManager {
         MyLinkedList<ShoppingItem> list = new MyLinkedList<>();
 
         try {
-            resultSet = statement.executeQuery("SELECT Name, Amount FROM App.ShoppingItem ORDER BY Name");
+            resultSet = statement.executeQuery("SELECT Name, Amount"
+                                                + " FROM App.ShoppingItem"
+                                                + " ORDER BY Name");
 
             while (resultSet.next()) {
                 String name = resultSet.getString(1);

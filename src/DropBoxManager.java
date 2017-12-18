@@ -5,7 +5,7 @@ import com.dropbox.core.v2.DbxClientV2;
 import java.io.*;
 
 /**
- * DropBoxManager
+ * DropBoxManager controls DropBox connection
  * 
  * @author      Jyri Virtaranta jyri.virtaranta@cs.tamk.fi
  * @version     2017.12.02

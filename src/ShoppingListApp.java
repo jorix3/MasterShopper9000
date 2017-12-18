@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.Properties;
 
 /**
- * ShoppingListApp
+ * ShoppingListApp contains main functionality of MasterShopper9000 App
  *
  * @author      Jyri Virtaranta jyri.virtaranta@cs.tamk.fi
  * @version     2017.11.14

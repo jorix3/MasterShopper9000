@@ -1,9 +1,7 @@
 import java.util.Scanner;
 
 /**
- * CommandLineInterface
- *
- * <p>Command line interface for MasterShopper9000 application</p>
+ * CommandLineInterface is a simplified access point for MasterShopper9000
  *
  * @author      Jyri Virtaranta jyri.virtaranta@cs.tamk.fi
  * @version     2017.11.05
@@ -50,14 +48,14 @@ public class CommandLineInterface {
                 stop();
             }
 
-            if (command.equals("save")) {
-                shoppingListApp.saveToFile("shoppingList.txt");
-            }
+//            if (command.equals("save")) {
+//                shoppingListApp.saveToFile("shoppingList.txt");
+//            }
 
-            if (command.equals("load")) {
-                shoppingListApp.loadFromFile("shoppingList.txt");
-                showListContent();
-            }
+//            if (command.equals("load")) {
+//                shoppingListApp.loadFromFile("shoppingList.txt");
+//                showListContent();
+//            }
 
             if (shoppingListApp.inputChecker(command)) {
                 shoppingListApp.inputHandler(command);
