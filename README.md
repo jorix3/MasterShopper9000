@@ -3,7 +3,7 @@ Shopping list application
 
 Made as a part of Tampere University of Applied Sciences second year studies.
 
-These are some of the assingment details. I will not go into too much detail as this is school work material that will be reused most likely in the future by the school.
+These are some of the assignment details. I will not go into too much detail as this is school work material that will be reused most likely in the future by the school.
 
 
 Minimum requirements were defined as: CLI that accepts certain input defined in a separate txt file and console output should look as determined by another txt file.
