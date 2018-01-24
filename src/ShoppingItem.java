@@ -1,13 +1,20 @@
+import javax.persistence.*;
+
 /**
- * ShoppingItem
+ * ShoppingItem represents a unique item with amount IE: "4 eggs"
  *
  * @author      Jyri Virtaranta jyri.virtaranta@cs.tamk.fi
  * @version     2017.11.05
  * @since       1.8
  */
+@Entity
+@Table(name = "SHOPPING_ITEM")
 public class ShoppingItem {
-    private int amount;
+    @Id
+    @Column(name = "Name", unique = true)
     private String name;
+    @Column(name = "Amount")
+    private int amount;
 
     /**
      * Instantiates a new ShoppingItem.
